@@ -1,0 +1,24 @@
+{
+  "name": "webdev",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "less": "^4.2.0",
+    "less-loader": "^12.2.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.29",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.5",
+    "unplugin-vue-router": "^0.10.8",
+    "vite": "^5.3.1",
+    "vue-auto-routing": "^1.0.1"
+  }
+}
