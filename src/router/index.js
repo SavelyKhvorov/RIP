@@ -17,8 +17,13 @@ const routes = [
     component: () => import("@/pages/account.vue"),
   },
   {
+    path: "/write",
+    name: "write",
+    component: () => import("@/pages/write.vue"),
+  },
+  {
     path: "/blog/:id",
-    name: "blogArticle",
+    name: "Article",
     component: () => import("@/pages/blog/[id].vue"),
   }
 ];

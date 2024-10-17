@@ -2,7 +2,7 @@
   <div class="card-article">
     <h4
       class="card-article__title"
-      @click="$router.push({ name: 'blogArticle', params: { id: id } })"
+      @click="$router.push({ name: 'Article', params: { id: id } })"
     >
       {{ title }}
     </h4>
