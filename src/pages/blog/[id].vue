@@ -42,125 +42,125 @@
         <button @click="cancelChanges">Отменить</button>
         <button @click="deleteArticle">Удалить</button>
       </div>
+
+      <div>
+        <Comments/>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script>
-import newsList from "@/json/news.json";
+import axios from "axios";
 import SvgPencil from "@/components/icons/SvgPencil.vue";
 import SvgDownload from "@/components/icons/SvgDownload.vue";
+import Comments from "@/components/Comments.vue";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export default {
   components: {
+    Comments,
     SvgPencil,
     SvgDownload,
   },
   data() {
     return {
-      newsList: newsList, 
       isEditing: false,
       editedItem: {},
     };
   },
   computed: {
-    listItem() {
-      return (
-        this.newsList.find((item) => this.$route.params.id == item.id) || {}
-      );
-    },
-  },
-  watch: {
-    listItem: {
-      immediate: true,
-      handler(newItem) {
-        this.editedItem = { ...newItem };
-      },
+    id() {
+      return +this.$route.params.id; 
     },
   },
   methods: {
     toggleEdit() {
-      if (!this.isEditing) {
-        this.editedItem = { ...this.listItem }; 
-      }
       this.isEditing = !this.isEditing;
     },
-    saveChanges() {
-      const index = this.newsList.findIndex((item) => item.id === this.editedItem.id);
-      if (index !== -1) {
-        this.newsList[index] = { ...this.editedItem };
+
+    async getPost() {
+      if (!this.id) return;
+      try {
+        const response = await axios.get(`https://jsonplaceholder.typicode.com/posts/${this.id}`);
+        this.editedItem = {
+          title: response.data.title,
+          description: response.data.body,
+          author: response.data.userId,
+          sections: ["Секция 1", "Секция 2"],
+        };
+      } catch (error) {
+        console.error("Ошибка при загрузке статьи:", error);
       }
-      this.isEditing = false; 
     },
+
+    async saveChanges() {
+      try {
+        const response = await axios.put(`https://jsonplaceholder.typicode.com/posts/${this.id}`, {
+          title: this.editedItem.title,
+          body: this.editedItem.description,
+          userId: this.editedItem.author,
+        });
+        this.isEditing = false; 
+      } catch (error) {
+        console.error("Ошибка при сохранении статьи:", error);
+        alert("Ошибка при сохранении.");
+      }
+    },
+
     cancelChanges() {
-      this.editedItem = { ...this.listItem }; 
-      this.isEditing = false; 
+      this.getPost(); 
+      this.isEditing = false;
     },
-    deleteArticle() {
-      if (window.confirm('Вы уверены, что хотите удалить эту статью?')) {
-        const index = this.newsList.findIndex((item) => item.id === this.editedItem.id);
-        if (index !== -1) {
-          this.newsList.splice(index, 1);
+
+    async deleteArticle() {
+      if (window.confirm("Вы уверены, что хотите удалить эту статью?")) {
+        try {
+          await axios.delete(`https://jsonplaceholder.typicode.com/posts/${this.id}`);
+          alert("Статья успешно удалена.");
+          this.$router.push('/'); 
+        } catch (error) {
+          console.error("Ошибка при удалении статьи:", error);
+          alert("Ошибка при удалении.");
         }
-        this.$router.push('/');
       }
     },
+
     async downloadPDF() {
       const element = this.$refs.articleContent;
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
 
-      // Захватываем изображение с элемента через html2canvas
-      const canvas = await html2canvas(element, {
-        scale: 2,  // Масштабируем для повышения качества
-        useCORS: true  // Поддержка CORS (если требуется)
-      });
-
-      // Получаем размеры canvas
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
+      const imgData = canvas.toDataURL("image/png");
 
-      // Получаем изображение в формате PNG
-      const imgData = canvas.toDataURL('image/png');
-
-      // Создаем новый PDF-документ в формате A4
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF("p", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Рассчитываем высоту изображения в пропорции к ширине PDF-страницы
       const pdfHeight = (imgHeight * pageWidth) / imgWidth;
 
-      // Если изображение не превышает высоту страницы, просто добавляем его на одну страницу
       if (pdfHeight <= pageHeight) {
-        pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pdfHeight);
+        pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pdfHeight);
       } else {
-        // Если изображение больше одной страницы, делаем многостраничный PDF
         let position = 0;
         while (position < imgHeight) {
-          // Если это не первая страница, добавляем новую страницу
           if (position !== 0) {
             pdf.addPage();
           }
-
-          // Рисуем изображение на странице с соответствующим смещением
-          const remainingHeight = imgHeight - position; // Оставшаяся высота изображения
-          const heightToDraw = remainingHeight < imgHeight ? remainingHeight : pageHeight;
-
-          pdf.addImage(
-            imgData, 'PNG',
-            0, -position * (pageWidth / imgWidth), // Сдвиг по высоте в зависимости от позиции
-            pageWidth, pageHeight
-          );
-
+          const remainingHeight = imgHeight - position;
+          const heightToDraw = remainingHeight < pageHeight ? remainingHeight : pageHeight;
+          pdf.addImage(imgData, "PNG", 0, -position * (pageWidth / imgWidth), pageWidth, pageHeight);
           position += pageHeight;
         }
       }
-
-      // Сохраняем PDF
       pdf.save(`${this.editedItem.title}.pdf`);
-    }
-  }
+    },
+  },
+  created() {
+    this.getPost(); 
+  },
 };
 </script>
 

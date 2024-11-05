@@ -1,5 +1,8 @@
 <template>
   <div class="card-article">
+    <SvgHeart class="card-article__favorite" :class="{ 'card-article__favorite--active': mainStore.favorites[id] }" 
+    @click="mainStore.setFavorite(id)"
+    />
     <h4
       class="card-article__title"
       @click="$router.push({ name: 'Article', params: { id: id } })"
@@ -14,7 +17,14 @@
 </template>
 
 <script>
+import { mapStores } from "pinia";
+import { useMainStore } from "@/store";
+import SvgHeart from "@/components/icons/SvgHeart.vue";
+
 export default {
+  components: {
+    SvgHeart,
+  },
   props: {
     id: {
       type: [Number, String],
@@ -28,6 +38,9 @@ export default {
       type: String,
       default: "",
     },
+  },
+  computed: {
+    ...mapStores(useMainStore)
   }
 };
 </script>
@@ -45,6 +58,27 @@ export default {
     color: @black;
     font-size: 20px;
     cursor: pointer;
+  }
+
+  &__favorite {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      @media (hover: hover){
+        color: red;
+      }
+    }
+
+    &:active,
+    &--active{
+        color: red;
+    }
   }
 
   &__description {
