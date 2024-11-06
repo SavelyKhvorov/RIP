@@ -94,11 +94,11 @@ export default {
       }
     },
     getNewsList(page) {
-      if (this.isFavorites && !this.favoriteList.length) {
+      // if (this.isFavorites && !this.favoriteList.length) {
         this.hasData = true;
-        return;
-      }
-      this.$axios("https://jsonplaceholder.typicode.com/posts/", {
+      //   return;
+      // }
+      this.$axios("http://192.168.93.179:5000/books", {
         params: {
           id: this.isFavorites ? this.favoriteList : [],
           _limit: this.limit,

@@ -21,7 +21,7 @@
             class="page-header__nav-item"
             :to="{ path: tab.path, query: tab.query }"
           >
-          <!-- {{ tab.title }} -->
+
           <component :is="tab.icon" />
           </RouterLink>
         </nav>
@@ -35,6 +35,7 @@ import SvgAccount from "@/components/icons/SvgAccount.vue";
 import SvgHeart from "@/components/icons/SvgHeart.vue";
 import SvgPencil from "@/components/icons/SvgPencil.vue";
 import SvgSearch from "@/components/icons/SvgSearch.vue";
+import SvgSuggested from "@/components/icons/SvgSuggested.vue";
 
 export default {
   components: {
@@ -42,11 +43,18 @@ export default {
     SvgHeart,
     SvgPencil,
     SvgSearch,
+    SvgSuggested,
   },
   
     data() {
       return {
         tabs: [
+        {
+            title: "Предложка",
+            path: "/suggested",
+            query: {},
+            icon: SvgSuggested
+          },
           {
             title: "Написать",
             path: "/write",

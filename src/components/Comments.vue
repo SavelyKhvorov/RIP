@@ -15,39 +15,72 @@
       </div>
 
       <div class="comments__list">
-        <div class="comments__item">
+        <div v-for="comment in comments" :key="comment.id" class="comments__item">
           <div class="comments__prof-pic">
-            <img class="comments__prof-pic-img" src="@/assets/img/McLovin.jpeg" alt="User Picture">
+            <img class="comments__prof-pic-img" :src="comment.avatarUrl || '@/assets/img/default-avatar.png'" alt="User Picture">
           </div>
           <div class="comments__content">
-            <span class="comments__username">Username</span>
-            <p class="comments__text">
-              Здесь будет длинный комментарий пользователя, отображающийся под его именем и аватаром. Комментарий может содержать несколько строк текста. Здесь будет длинный комментарий пользователя, отображающийся под его именем и аватаром. Комментарий может содержать несколько строк текста. Здесь будет длинный комментарий пользователя, отображающийся под его именем и аватаром. Комментарий может содержать несколько строк текста. 
-            </p>
-            <span class="comments__date">12/09/24</span>
+            <span class="comments__username">{{ comment.username }}</span>
+            <p class="comments__text">{{ comment.text }}</p>
+            <span class="comments__date">{{ comment.date }}</span>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 </template>
 
-
 <script>
-export default {
-  data() {
-    return { 
-      inputValue: '',
-    };
-  },
-  methods:{
-    postComment(){
-      this.inputValue = ''
-    }
-  }
-};
+import io from 'socket.io-client';
 
+// export default {
+//   data() {
+//     return {
+//       inputValue: '',
+//       comments: [], // массив для хранения комментариев
+//       socket: null, // ссылка на объект сокета
+//     };
+//   },
+//   mounted() {
+//     // Подключаемся к серверу веб-сокетов при монтировании компонента
+//     this.socket = io('http://localhost:3000'); // Замените на URL вашего сервера
+
+//     // Слушаем событие получения нового комментария
+//     this.socket.on('newComment', (comment) => {
+//       this.comments.push(comment); // добавляем новый комментарий в список
+//     });
+
+//     // Запрос всех комментариев при загрузке страницы
+//     this.socket.emit('getComments'); // Запрос всех комментариев с сервера
+//     this.socket.on('allComments', (comments) => {
+//       this.comments = comments; // Инициализация списка комментариев
+//     });
+//   },
+//   methods: {
+//     postComment() {
+//       if (!this.inputValue.trim()) return; // проверка на пустой комментарий
+
+//       const newComment = {
+//         text: this.inputValue,
+//         username: 'User1', // замените на реальное имя пользователя
+//         avatarUrl: '@/assets/img/McLovin.jpeg', // можно также заменить на URL из данных пользователя
+//         date: new Date().toLocaleDateString(),
+//       };
+
+//       // Отправляем комментарий на сервер
+//       this.socket.emit('postComment', newComment);
+
+//       // Очистить поле ввода
+//       this.inputValue = '';
+//     },
+//   },
+//   beforeDestroy() {
+//     // Отключаемся от сокета при уничтожении компонента
+//     if (this.socket) {
+//       this.socket.disconnect();
+//     }
+//   },
+// };
 </script>
 
 <style lang="less">

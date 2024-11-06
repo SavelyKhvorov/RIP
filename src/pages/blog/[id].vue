@@ -77,56 +77,57 @@ export default {
     },
   },
   methods: {
-    toggleEdit() {
-      this.isEditing = !this.isEditing;
-    },
+  toggleEdit() {
+    this.isEditing = !this.isEditing;
+  },
 
-    async getPost() {
-      if (!this.id) return;
+  async getPost() {
+    if (!this.id) return;
+    try {
+      const response = await axios.get(`http://192.168.93.179:5000/books/${this.id}`);
+      this.editedItem = {
+        title: response.data.title,
+        description: response.data.body,
+        author: response.data.userId,
+        sections: response.data.sections || [],
+      };
+    } catch (error) {
+      console.error("Ошибка при загрузке статьи:", error);
+    }
+  },
+
+  async saveChanges() {
+    try {
+      await axios.put(`http://192.168.93.179:5000/books/${this.id}`, {
+        title: this.editedItem.title,
+        body: this.editedItem.description,
+        userId: this.editedItem.author,
+        sections: this.editedItem.sections, 
+      });
+      this.isEditing = false; 
+    } catch (error) {
+      console.error("Ошибка при сохранении статьи:", error);
+      alert("Ошибка при сохранении.");
+    }
+  },
+
+  cancelChanges() {
+    this.getPost();
+    this.isEditing = false;
+  },
+
+  async deleteArticle() {
+    if (window.confirm("Вы уверены, что хотите удалить эту статью?")) {
       try {
-        const response = await axios.get(`https://jsonplaceholder.typicode.com/posts/${this.id}`);
-        this.editedItem = {
-          title: response.data.title,
-          description: response.data.body,
-          author: response.data.userId,
-          sections: ["Секция 1", "Секция 2"],
-        };
+        await axios.delete(`http://192.168.93.179:5000/books/${this.id}`);
+        alert("Статья успешно удалена.");
+        this.$router.push('/');
       } catch (error) {
-        console.error("Ошибка при загрузке статьи:", error);
+        console.error("Ошибка при удалении статьи:", error);
+        alert("Ошибка при удалении.");
       }
-    },
-
-    async saveChanges() {
-      try {
-        const response = await axios.put(`https://jsonplaceholder.typicode.com/posts/${this.id}`, {
-          title: this.editedItem.title,
-          body: this.editedItem.description,
-          userId: this.editedItem.author,
-        });
-        this.isEditing = false; 
-      } catch (error) {
-        console.error("Ошибка при сохранении статьи:", error);
-        alert("Ошибка при сохранении.");
-      }
-    },
-
-    cancelChanges() {
-      this.getPost(); 
-      this.isEditing = false;
-    },
-
-    async deleteArticle() {
-      if (window.confirm("Вы уверены, что хотите удалить эту статью?")) {
-        try {
-          await axios.delete(`https://jsonplaceholder.typicode.com/posts/${this.id}`);
-          alert("Статья успешно удалена.");
-          this.$router.push('/'); 
-        } catch (error) {
-          console.error("Ошибка при удалении статьи:", error);
-          alert("Ошибка при удалении.");
-        }
-      }
-    },
+    }
+  },
 
     async downloadPDF() {
       const element = this.$refs.articleContent;
