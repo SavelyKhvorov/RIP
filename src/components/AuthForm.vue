@@ -60,6 +60,7 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/auth';
 
+
 export default {
   data() {
     return {
@@ -84,14 +85,21 @@ export default {
       this.step = 3;  
     },
     async loginUser() {
+      const authStore = useAuthStore();
+      const token = authStore.token;
+      console.log("Token:", token);
       try {
-        const response = await axios.post('http://26.177.53.250/api/login', {
+        const response = await axios.post('http://192.168.0.15:80/api/login', {
           username: this.login,
-          password: this.password,
+          password: this.password
         });
-        this.authStore.login({ username: this.login, token: response.data.token });
+
+        const { token, userId, email} = response.data;
+        authStore.login({ id: userId, username: this.login, email: email}, token);
+        console.log(response.data);
       } catch (error) {
-        alert(`Ошибка при авторизации: ${error.response.data.message}`);
+        const errorMsg = error.response?.data?.message || 'Ошибка подключения к серверу';
+        alert(`Ошибка при авторизации: ${errorMsg}`);
       }
     },
     async registerUser() {
@@ -101,15 +109,20 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://26.177.53.250/api/register', {
+        const response = await axios.post('http://192.168.0.15:80/api/register', {
           username: this.registerLogin,
           email: this.registerEmail,
           password: this.registerPassword,
         });
-        this.authStore.login({ username: this.registerLogin, token: response.data.token });
-        alert(`Успешная регистрация: ${response.data.message}`);
+
+        const { token, userId, email } = response.data;
+        const authStore = useAuthStore();
+
+        authStore.login({ id: userId, username: this.registerLogin, email: email }, token);
+
       } catch (error) {
-        alert(`Ошибка при регистрации: ${error.response.data.message}`);
+        const errorMsg = error.response?.data?.message || 'Ошибка подключения к серверу';
+        alert(`Ошибка при регистрации: ${errorMsg}`);
       }
     },
   },
@@ -120,7 +133,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://26.177.53.250/api/forgot-password', {
+        const response = await axios.post('http://192.168.0.16:80/api/forgot-password', {
           email: this.forgotEmail,
         });
         alert(`Письмо для восстановления пароля отправлено на ${this.forgotEmail}`);

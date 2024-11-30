@@ -3,7 +3,7 @@
     <div class="persaccount__container">
       <div class="persaccount__user">
         <div class="persaccount__prof-pic">
-          <img class="persaccount__prof-pic-img" src="@/assets/img/McLovin.jpeg">
+          <img class="persaccount__prof-pic-img" src="@\assets\img\McLovin.jpeg" alt="User avatar">
         </div>
           <p class="persaccount__username">{{ user.username }}</p>
           <button @click="toInfo" type="button" class="persaccount__btn btn">Профиль</button>
@@ -16,33 +16,33 @@
           <h2 class="persaccount__title">Информация</h2>
 
           <div class="persaccount__group">
-            <label class="persaccount__label">Имя пользователя</label>
-            <input type="username" class="persaccount__input" id="username">
+            <label class="persaccount__label">Имя пользователя: {{ user.username }}</label>
+            <input type="text" v-model="newUsername" placeholder="Новое имя" class="persaccount__input" id="username">
           </div>
 
           <div class="persaccount__group">
-            <label class="persaccount__label">Email</label>
-            <input type="email" class="persaccount__input" id="email">
+            <label class="persaccount__label">Email: {{ user.email }}</label>
+            <input type="email" v-model="newEmail" placeholder="Новый email" class="persaccount__input" id="email">
           </div>
 
           <div class="persaccount__group">
             <label class="persaccount__label">Пароль</label>
-            <input type="password" class="persaccount__input" id="password">
+            <input type="password" v-model="newPassword" placeholder="Новый пароль" class="persaccount__input" id="password">
           </div>
 
           <div class="persaccount__group">
             <label class="persaccount__label">Подтверждение пароля</label>
-            <input type="passwordConfirm" class="persaccount__input" id="passwordConfirm">
+            <input type="password" v-model="newPasswordConfirm" placeholder="Подтверждение пароля" class="persaccount__input" id="passwordConfirm">
           </div>
 
-          <button @click="" class="persaccount__btn btn">Сохранить</button>
+          <button @click="saveChanges" class="persaccount__btn btn">Сохранить</button>
 
         </div>
 
         <div v-else class="persaccount__articles"> 
           <h2 class="persaccount__title">Мои статьи</h2>
           <div persaccount__articles-container>
-            <ListArticles :isAuthor="true" />
+            <ListArticles :isOwn="true" />
           </div>
         </div>
 
@@ -55,6 +55,7 @@
 <script>
 import { useAuthStore } from '@/store/auth';
 import ListArticles from "@/components/ListArticles.vue";
+import axios from "axios";
 
 export default {
   components: {
@@ -64,12 +65,20 @@ export default {
     return {
       handler: 0,
       authStore: useAuthStore(),  
+      newUsername: '',
+      newEmail: '',
+      newPassword: '',
+      newPasswordConfirm: ''
     };
   },
   computed: {
     user() {
       return this.authStore?.user || {};
     },
+    email(){
+      return this.authStore?.email || {};
+    },
+    
   },
   methods: {
     toInfo(){
@@ -81,7 +90,43 @@ export default {
     logout() {
       this.authStore.logout();
     },
-  },
+    async saveChanges() {
+      const updatedData = {};
+
+      if (this.newUsername) {
+        updatedData.username = this.newUsername;
+      }
+      if (this.newEmail) {
+        updatedData.email = this.newEmail;
+      }
+      if (this.newPassword && this.newPassword === this.newPasswordConfirm) {
+        updatedData.password = this.newPassword;
+      } else if (this.newPassword && this.newPassword !== this.newPasswordConfirm) {
+        alert("Пароли не совпадают");
+        return;
+      }
+
+      try {
+        const response = await axios.put(`http://192.168.0.15:80/api/profile`, updatedData, {
+          headers: { Authorization: `Bearer ${this.authStore.token}` }
+        });
+
+
+        if (response.status === 200) {
+          this.authStore.updateUser({...updatedData});
+          alert("Данные успешно обновлены");
+          
+          this.newUsername = '';
+          this.newEmail = '';
+          this.newPassword = '';
+          this.newPasswordConfirm = '';
+        }
+      } catch (error) {
+        alert("Ошибка при обновлении данных пользователя");
+        console.error(error);
+      }
+    },
+  }
 };
 </script>
 
@@ -164,24 +209,27 @@ export default {
   }
 
   &__articles{
-    max-height: 400px; 
+    max-height: 450px; 
+    height: 100%;
     overflow-y: auto;
     max-width: 100%;   
     box-sizing: border-box; 
   }
 
-  .persaccount__articles::-webkit-scrollbar {
-  width: 10px;
-}
+  &__prof-pic{
+    display: inline-block;
+    border-radius: 50%;
+    overflow: hidden;
+    width: 200px;
+    height: 200px;
+  }
 
-.persaccount__articles::-webkit-scrollbar-thumb {
-  background-color: @black;
-  border-radius: 5px;
-}
+  &__prof-pic-img{
+    width:100%;
+    height:100%;
+    object-fit: cover;
+  }
 
-.persaccount__articles::-webkit-scrollbar-track {
-  background-color: #f0f0f0;
-}
 
   }
 </style>

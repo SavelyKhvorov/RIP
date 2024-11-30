@@ -1,7 +1,9 @@
 <template>
   <div class="card-article">
-    <SvgHeart class="card-article__favorite" :class="{ 'card-article__favorite--active': mainStore.favorites[id] }" 
-    @click="mainStore.setFavorite(id)"
+    <SvgHeart
+      class="card-article__favorite"
+      :class="{ 'card-article__favorite--active': mainStore.favorites[id] }"
+      @click="toggleFavorite"
     />
     <h4
       class="card-article__title"
@@ -40,8 +42,18 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useMainStore)
-  }
+    ...mapStores(useMainStore),
+  },
+  methods: {
+    async toggleFavorite() {
+      if (this.mainStore.favorites[this.id]) {
+        await this.mainStore.removeFromFavorites(this.id);
+      } else {
+        await this.mainStore.addToFavorites(this.id);
+      }
+    },
+  },
+  
 };
 </script>
 
@@ -70,14 +82,14 @@ export default {
     transition: color 0.2s ease;
 
     &:hover {
-      @media (hover: hover){
+      @media (hover: hover) {
         color: red;
       }
     }
 
     &:active,
-    &--active{
-        color: red;
+    &--active {
+      color: red;
     }
   }
 
